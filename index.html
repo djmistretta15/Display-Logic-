@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Display Logic Dashboard</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <span class="sidebar-logo">⚡</span>
+      <span class="sidebar-title">Display Logic</span>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="#" class="nav-item active" data-view="dashboard">
+        <span class="nav-icon">📊</span>
+        <span class="nav-label">Dashboard</span>
+      </a>
+      <a href="#" class="nav-item" data-view="products">
+        <span class="nav-icon">📦</span>
+        <span class="nav-label">Products</span>
+      </a>
+      <a href="#" class="nav-item" data-view="quotes">
+        <span class="nav-icon">📋</span>
+        <span class="nav-label">Quotes</span>
+      </a>
+      <a href="#" class="nav-item" data-view="rules">
+        <span class="nav-icon">🔧</span>
+        <span class="nav-label">Display Rules</span>
+      </a>
+    </nav>
+  </aside>
+
+  <!-- Main content -->
+  <div class="main-wrapper">
+    <!-- Top bar -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="menu-btn" id="menuBtn" aria-label="Toggle sidebar">☰</button>
+        <h1 class="page-title" id="pageTitle">Dashboard</h1>
+      </div>
+      <div class="topbar-right">
+        <span class="badge-count" id="badgeAlert" style="display:none"></span>
+        <span class="user-avatar">DL</span>
+      </div>
+    </header>
+
+    <!-- Views -->
+    <main class="content">
+
+      <!-- ===== DASHBOARD VIEW ===== -->
+      <section class="view active" id="view-dashboard">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon">📦</div>
+            <div class="stat-info">
+              <span class="stat-value" id="stat-products">0</span>
+              <span class="stat-label">Products</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">📋</div>
+            <div class="stat-info">
+              <span class="stat-value" id="stat-quotes">0</span>
+              <span class="stat-label">Quotes</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">🔧</div>
+            <div class="stat-info">
+              <span class="stat-value" id="stat-rules">0</span>
+              <span class="stat-label">Display Rules</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">✅</div>
+            <div class="stat-info">
+              <span class="stat-value" id="stat-active-quotes">0</span>
+              <span class="stat-label">Active Quotes</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="dashboard-grid">
+          <div class="card">
+            <div class="card-header">
+              <h2>Recent Products</h2>
+              <button class="btn btn-sm btn-primary" data-view="products">View All</button>
+            </div>
+            <table class="table" id="dash-products-table">
+              <thead>
+                <tr><th>Name</th><th>Category</th><th>Price</th><th>Status</th></tr>
+              </thead>
+              <tbody id="dash-products-body">
+                <tr class="empty-row"><td colspan="4">No products yet.</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <h2>Recent Quotes</h2>
+              <button class="btn btn-sm btn-primary" data-view="quotes">View All</button>
+            </div>
+            <table class="table" id="dash-quotes-table">
+              <thead>
+                <tr><th>Customer</th><th>Total</th><th>Status</th><th>Date</th></tr>
+              </thead>
+              <tbody id="dash-quotes-body">
+                <tr class="empty-row"><td colspan="4">No quotes yet.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== PRODUCTS VIEW ===== -->
+      <section class="view" id="view-products">
+        <div class="view-toolbar">
+          <div class="search-wrap">
+            <input type="text" class="search-input" id="productSearch" placeholder="Search products…" />
+          </div>
+          <div class="toolbar-actions">
+            <select class="select-filter" id="productCategoryFilter">
+              <option value="">All Categories</option>
+            </select>
+            <button class="btn btn-primary" id="openProductModal">+ New Product</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <table class="table" id="products-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Category</th>
+                <th>Price</th>
+                <th>Stock</th>
+                <th>Visible</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="products-body">
+              <tr class="empty-row"><td colspan="6">No products yet. Click "New Product" to add one.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ===== QUOTES VIEW ===== -->
+      <section class="view" id="view-quotes">
+        <div class="view-toolbar">
+          <div class="search-wrap">
+            <input type="text" class="search-input" id="quoteSearch" placeholder="Search quotes…" />
+          </div>
+          <div class="toolbar-actions">
+            <select class="select-filter" id="quoteStatusFilter">
+              <option value="">All Statuses</option>
+              <option value="draft">Draft</option>
+              <option value="sent">Sent</option>
+              <option value="accepted">Accepted</option>
+              <option value="rejected">Rejected</option>
+            </select>
+            <button class="btn btn-primary" id="openQuoteModal">+ New Quote</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <table class="table" id="quotes-table">
+            <thead>
+              <tr>
+                <th>Quote #</th>
+                <th>Customer</th>
+                <th>Products</th>
+                <th>Total</th>
+                <th>Status</th>
+                <th>Date</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="quotes-body">
+              <tr class="empty-row"><td colspan="7">No quotes yet. Click "New Quote" to add one.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ===== RULES VIEW ===== -->
+      <section class="view" id="view-rules">
+        <div class="view-toolbar">
+          <div class="search-wrap">
+            <input type="text" class="search-input" id="ruleSearch" placeholder="Search rules…" />
+          </div>
+          <div class="toolbar-actions">
+            <button class="btn btn-primary" id="openRuleModal">+ New Rule</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="rules-info-banner">
+            <span>💡</span>
+            <span>Display Logic rules control product visibility based on configurable conditions.</span>
+          </div>
+          <table class="table" id="rules-table">
+            <thead>
+              <tr>
+                <th>Rule Name</th>
+                <th>Condition</th>
+                <th>Action</th>
+                <th>Targets</th>
+                <th>Active</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="rules-body">
+              <tr class="empty-row"><td colspan="6">No rules yet. Click "New Rule" to add one.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ===== PRODUCT MODAL ===== -->
+  <div class="modal-overlay" id="productModal" role="dialog" aria-modal="true" aria-labelledby="productModalTitle">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 id="productModalTitle">New Product</h2>
+        <button class="modal-close" data-close="productModal" aria-label="Close">×</button>
+      </div>
+      <div class="modal-body">
+        <form id="productForm" novalidate>
+          <input type="hidden" id="productId" />
+          <div class="form-row">
+            <div class="form-group">
+              <label for="productName">Product Name <span class="required">*</span></label>
+              <input type="text" id="productName" class="form-input" placeholder="Enter product name" required />
+              <span class="field-error" id="productNameErr"></span>
+            </div>
+            <div class="form-group">
+              <label for="productCategory">Category <span class="required">*</span></label>
+              <input type="text" id="productCategory" class="form-input" placeholder="e.g. Electronics" required />
+              <span class="field-error" id="productCategoryErr"></span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="productDescription">Description</label>
+            <textarea id="productDescription" class="form-input" rows="3" placeholder="Product description…"></textarea>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="productPrice">Price ($) <span class="required">*</span></label>
+              <input type="number" id="productPrice" class="form-input" placeholder="0.00" min="0" step="0.01" required />
+              <span class="field-error" id="productPriceErr"></span>
+            </div>
+            <div class="form-group">
+              <label for="productStock">Stock Quantity</label>
+              <input type="number" id="productStock" class="form-input" placeholder="0" min="0" step="1" value="0" />
+            </div>
+          </div>
+          <div class="form-group form-check">
+            <input type="checkbox" id="productVisible" checked />
+            <label for="productVisible">Visible (displayed on storefront)</label>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-close="productModal">Cancel</button>
+        <button class="btn btn-primary" id="saveProduct">Save Product</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== QUOTE MODAL ===== -->
+  <div class="modal-overlay" id="quoteModal" role="dialog" aria-modal="true" aria-labelledby="quoteModalTitle">
+    <div class="modal modal-lg">
+      <div class="modal-header">
+        <h2 id="quoteModalTitle">New Quote</h2>
+        <button class="modal-close" data-close="quoteModal" aria-label="Close">×</button>
+      </div>
+      <div class="modal-body">
+        <form id="quoteForm" novalidate>
+          <input type="hidden" id="quoteId" />
+          <div class="form-row">
+            <div class="form-group">
+              <label for="quoteCustomer">Customer Name <span class="required">*</span></label>
+              <input type="text" id="quoteCustomer" class="form-input" placeholder="Enter customer name" required />
+              <span class="field-error" id="quoteCustomerErr"></span>
+            </div>
+            <div class="form-group">
+              <label for="quoteEmail">Customer Email</label>
+              <input type="email" id="quoteEmail" class="form-input" placeholder="customer@example.com" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="quoteNotes">Notes</label>
+            <textarea id="quoteNotes" class="form-input" rows="2" placeholder="Additional notes…"></textarea>
+          </div>
+
+          <!-- Product line items -->
+          <div class="form-group">
+            <label>Products</label>
+            <div class="line-items-header">
+              <span>Product</span><span>Qty</span><span>Unit Price</span><span>Discount %</span><span>Line Total</span><span></span>
+            </div>
+            <div id="quoteLineItems"></div>
+            <button type="button" class="btn btn-sm btn-secondary mt-8" id="addLineItem">+ Add Product</button>
+          </div>
+
+          <div class="quote-totals">
+            <div class="quote-total-row"><span>Subtotal:</span><span id="quoteSubtotal">$0.00</span></div>
+            <div class="quote-total-row"><span>Global Discount:</span>
+              <span><input type="number" id="quoteDiscount" class="form-input inline-input" min="0" max="100" step="0.1" value="0" /> %</span>
+            </div>
+            <div class="quote-total-row quote-grand"><span>Total:</span><span id="quoteTotal">$0.00</span></div>
+          </div>
+
+          <div class="form-row mt-8">
+            <div class="form-group">
+              <label for="quoteStatus">Status</label>
+              <select id="quoteStatus" class="form-input">
+                <option value="draft">Draft</option>
+                <option value="sent">Sent</option>
+                <option value="accepted">Accepted</option>
+                <option value="rejected">Rejected</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="quoteExpiry">Expiry Date</label>
+              <input type="date" id="quoteExpiry" class="form-input" />
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-close="quoteModal">Cancel</button>
+        <button class="btn btn-primary" id="saveQuote">Save Quote</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== RULE MODAL ===== -->
+  <div class="modal-overlay" id="ruleModal" role="dialog" aria-modal="true" aria-labelledby="ruleModalTitle">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 id="ruleModalTitle">New Display Rule</h2>
+        <button class="modal-close" data-close="ruleModal" aria-label="Close">×</button>
+      </div>
+      <div class="modal-body">
+        <form id="ruleForm" novalidate>
+          <input type="hidden" id="ruleId" />
+          <div class="form-group">
+            <label for="ruleName">Rule Name <span class="required">*</span></label>
+            <input type="text" id="ruleName" class="form-input" placeholder="e.g. Hide out-of-stock items" required />
+            <span class="field-error" id="ruleNameErr"></span>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="ruleConditionField">When field</label>
+              <select id="ruleConditionField" class="form-input">
+                <option value="stock">Stock Quantity</option>
+                <option value="price">Price</option>
+                <option value="category">Category</option>
+                <option value="visible">Visibility</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="ruleConditionOp">Operator</label>
+              <select id="ruleConditionOp" class="form-input">
+                <option value="eq">equals</option>
+                <option value="neq">not equals</option>
+                <option value="lt">less than</option>
+                <option value="lte">less than or equal</option>
+                <option value="gt">greater than</option>
+                <option value="gte">greater than or equal</option>
+                <option value="contains">contains</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="ruleConditionValue">Value <span class="required">*</span></label>
+              <input type="text" id="ruleConditionValue" class="form-input" placeholder="e.g. 0" required />
+              <span class="field-error" id="ruleConditionValueErr"></span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="ruleAction">Then action</label>
+            <select id="ruleAction" class="form-input">
+              <option value="hide">Hide product</option>
+              <option value="show">Show product</option>
+              <option value="highlight">Highlight product</option>
+              <option value="discount">Apply 10% discount</option>
+            </select>
+          </div>
+          <div class="form-group form-check">
+            <input type="checkbox" id="ruleActive" checked />
+            <label for="ruleActive">Rule is active</label>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-close="ruleModal">Cancel</button>
+        <button class="btn btn-primary" id="saveRule">Save Rule</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== DELETE CONFIRM MODAL ===== -->
+  <div class="modal-overlay" id="deleteModal" role="dialog" aria-modal="true" aria-labelledby="deleteModalTitle">
+    <div class="modal modal-sm">
+      <div class="modal-header">
+        <h2 id="deleteModalTitle">Confirm Delete</h2>
+        <button class="modal-close" data-close="deleteModal" aria-label="Close">×</button>
+      </div>
+      <div class="modal-body">
+        <p id="deleteMessage">Are you sure you want to delete this item? This action cannot be undone.</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-close="deleteModal">Cancel</button>
+        <button class="btn btn-danger" id="confirmDelete">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast notification -->
+  <div class="toast" id="toast"></div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
