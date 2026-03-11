@@ -1,0 +1,769 @@
+import { useState, useEffect, useRef } from "react";
+
+const COLORS = {
+  bg: "#080C14",
+  surface: "#0D1421",
+  card: "#111827",
+  border: "#1E2D45",
+  borderBright: "#2A3F5F",
+  accent: "#0EA5E9",
+  accentDim: "#0284C7",
+  accentGlow: "rgba(14,165,233,0.15)",
+  gold: "#F59E0B",
+  goldDim: "#D97706",
+  green: "#10B981",
+  greenDim: "#059669",
+  red: "#EF4444",
+  violet: "#8B5CF6",
+  text: "#F1F5F9",
+  textMid: "#94A3B8",
+  textDim: "#475569",
+  white: "#FFFFFF",
+};
+
+const TECHNOLOGIES = [
+  { id: "tft-lcd", label: "TFT-LCD", icon: "▦", desc: "Standard workhorse. High brightness options up to 1200 nit. ITAR available.", tag: "Most Popular", color: COLORS.accent },
+  { id: "oled", label: "OLED", icon: "◈", desc: "Infinite contrast. Thin & lightweight. Ideal for medical and premium applications.", tag: "Premium", color: COLORS.violet },
+  { id: "epaper", label: "E-Paper / EPD", icon: "◻", desc: "Zero power image retention. Sunlight readable. Retail, logistics, IoT.", tag: "Ultra-Low Power", color: COLORS.green },
+  { id: "memory-lcd", label: "Memory LCD", icon: "⬡", desc: "Bistable reflective. Battery-powered IoT. Always-on with no refresh power.", tag: "IoT / Wearable", color: COLORS.gold },
+  { id: "electrochromic", label: "Electrochromic", icon: "◑", desc: "Printed flexible displays. Ynvisible technology. Conformable to curved surfaces.", tag: "Flexible / Printed", color: "#EC4899" },
+  { id: "fald", label: "FALD Backlit LCD", icon: "⊞", desc: "Full Array Local Dimming. Cinema-grade HDR contrast. Pro AV & defense.", tag: "HDR / High Contrast", color: "#F97316" },
+];
+
+const APPLICATIONS = [
+  { id: "military", label: "Military / Defense", icon: "🎖", desc: "ITAR registered. MIL-SPEC cable. Ruggedized.", color: "#EF4444" },
+  { id: "medical", label: "Medical / Healthcare", icon: "⚕", desc: "FDA-adjacent. Privacy film. HIPAA signage.", color: "#10B981" },
+  { id: "industrial", label: "Industrial / Factory", icon: "⚙", desc: "IP-rated. Wide temp. POE options.", color: COLORS.gold },
+  { id: "outdoor", label: "Outdoor / Kiosk", icon: "☀", desc: "1200 nit. Weather sealed. EV charging.", color: "#F97316" },
+  { id: "transit", label: "Transit / Vehicle", icon: "🚌", desc: "Stretched formats. Vibration resistant. Long lifecycle.", color: "#8B5CF6" },
+  { id: "digital-signage", label: "Digital Signage", icon: "📺", desc: "Retail, hospitality, corporate. ITAR option.", color: "#06B6D4" },
+  { id: "iot", label: "IoT / Embedded", icon: "◈", desc: "Ultra-low power. Small form factor. SPI/I2C.", color: "#84CC16" },
+  { id: "commercial", label: "Commercial / Other", icon: "◻", desc: "General purpose. Any size. Fast lead time.", color: COLORS.textMid },
+];
+
+const ENHANCEMENTS = [
+  { id: "optical-bonding", label: "Optical Bonding", icon: "◈", desc: "Patented reworkable process. Eliminates air gap. Outdoor readability ×3.", category: "optical", highlight: true },
+  { id: "pcap-touch", label: "PCAP Touch", icon: "☞", desc: "Projected capacitive. Multi-touch. Gloved operation.", category: "touch" },
+  { id: "resistive-touch", label: "Resistive Touch", icon: "✦", desc: "Stylus & gloved. Harsh environments. Legacy HMI.", category: "touch" },
+  { id: "anti-reflection", label: "Anti-Reflection Film", icon: "◎", desc: "AR coating. <0.5% reflectance. Outdoor use.", category: "optical" },
+  { id: "anti-glare", label: "Anti-Glare Film", icon: "◑", desc: "Diffuse surface. Reduces specular glare.", category: "optical" },
+  { id: "emi-rfi", label: "EMI / RFI Shielding", icon: "⚡", desc: "MIL-STD EMI shielding. Defense & medical critical.", category: "compliance", highlight: true },
+  { id: "privacy-film", label: "Privacy Film", icon: "◧", desc: "60° viewing restriction. HIPAA / secure environments.", category: "optical" },
+  { id: "heat-rejection", label: "Heat Rejection Film", icon: "🌡", desc: "IR blocking. Reduces internal temp. Outdoor enclosures.", category: "environmental" },
+  { id: "high-brightness", label: "High Brightness (xTremeLCD)", icon: "☀", desc: "Up to 1200 nit. Outdoor direct sun. POE option.", category: "optical", highlight: true },
+  { id: "wide-viewing", label: "Wide Viewing Angle", icon: "◁▷", desc: "IPS/MVA enhancement. ±178° visible.", category: "optical" },
+  { id: "protection-layer", label: "Protection Layer", icon: "◱", desc: "Gorilla Glass / polycarbonate cover. Vandal resistant.", category: "physical" },
+  { id: "poe", label: "Power over Ethernet (POE)", icon: "⬡", desc: "802.3bt. 90W. Single Cat6 cable. No power run.", category: "power", highlight: true },
+];
+
+const INTERFACES = [
+  { id: "hdmi", label: "HDMI", icon: "H" },
+  { id: "lvds", label: "LVDS", icon: "L" },
+  { id: "edp", label: "eDP", icon: "e" },
+  { id: "mipi", label: "MIPI DSI", icon: "M" },
+  { id: "spi", label: "SPI / I2C", icon: "S" },
+  { id: "hdbaset", label: "HDBaseT / BasET", icon: "B" },
+];
+
+const SIZE_PRESETS = [
+  { label: "Wearable", min: 1, max: 3, icon: "◻" },
+  { label: "Handheld", min: 3, max: 7, icon: "▭" },
+  { label: "Tablet", min: 7, max: 12, icon: "▬" },
+  { label: "Monitor", min: 12, max: 24, icon: "▣" },
+  { label: "Large", min: 24, max: 43, icon: "⬛" },
+  { label: "XL / Signage", min: 43, max: 110, icon: "⬜" },
+];
+
+const AI_KNOWLEDGE = {
+  military: {
+    rec_tech: "tft-lcd",
+    rec_enhancements: ["optical-bonding", "emi-rfi", "anti-reflection", "protection-layer"],
+    rec_interface: "lvds",
+    message: "For military/defense applications, I recommend a **TFT-LCD** with optical bonding and EMI/RFI shielding. Display Logic is ITAR registered — a qualification most competitors cannot match. The patented reworkable optical bonding process is critical for field serviceability on deployed platforms. Add anti-reflection for sunlight readability and a protection layer for MIL-STD impact resistance.",
+    badge: "ITAR REGISTERED",
+    badgeColor: COLORS.red,
+  },
+  medical: {
+    rec_tech: "oled",
+    rec_enhancements: ["privacy-film", "optical-bonding", "anti-glare", "pcap-touch"],
+    rec_interface: "hdmi",
+    message: "Medical environments need **OLED** for true blacks in diagnostic imaging, plus a **privacy film** to restrict viewing angles for HIPAA compliance. Optical bonding prevents moisture ingress and makes the surface cleanable. PCAP touch supports gloved operation — critical in clinical settings. For VA Hospital programs, Display Logic's ITAR registration qualifies the build for federal procurement.",
+    badge: "HIPAA READY",
+    badgeColor: COLORS.green,
+  },
+  industrial: {
+    rec_tech: "tft-lcd",
+    rec_enhancements: ["optical-bonding", "heat-rejection", "protection-layer", "wide-viewing"],
+    rec_interface: "lvds",
+    message: "Industrial environments demand wide operating temperature, vibration resistance, and long lifecycle support. I recommend a **TFT-LCD** with optical bonding for moisture sealing, heat rejection film to manage thermal load in enclosures, and a protection layer. Display Logic's 30-year manufacturer network is your EOL insurance policy for long-lifecycle production programs.",
+    badge: "WIDE TEMP",
+    badgeColor: COLORS.gold,
+  },
+  outdoor: {
+    rec_tech: "tft-lcd",
+    rec_enhancements: ["high-brightness", "optical-bonding", "anti-reflection", "heat-rejection", "poe"],
+    rec_interface: "hdmi",
+    message: "Outdoor requires a minimum 800 nit — ideally **xTremeLCD at 1200 nit** — with optical bonding to eliminate the reflective air gap. Anti-reflection film drops surface reflectance below 0.5%. Add POE for single-cable installation: one Cat6 runs both power and signal to the kiosk or EV charging station. No separate power conduit needed.",
+    badge: "1200 NIT POE",
+    badgeColor: COLORS.gold,
+  },
+  transit: {
+    rec_tech: "tft-lcd",
+    rec_enhancements: ["optical-bonding", "protection-layer", "wide-viewing", "anti-reflection"],
+    rec_interface: "hdmi",
+    message: "Transit and vehicle displays need vibration-resistant optical bonding and wide viewing angles for passenger visibility. For stretched/bar-format vehicle HMI displays, Display Logic supplies aspect ratios from 3:1 to 8:1. ITAR registration qualifies the build for military vehicle programs. The 30-year manufacturer network supports transit authority lifecycle requirements.",
+    badge: "STRETCHED LCD",
+    badgeColor: COLORS.violet,
+  },
+  "digital-signage": {
+    rec_tech: "tft-lcd",
+    rec_enhancements: ["high-brightness", "pcap-touch", "optical-bonding", "anti-glare"],
+    rec_interface: "hdmi",
+    message: "Digital signage needs brightness and engagement. For interactive signage, **PCAP touch** with optical bonding creates a premium surface. For government or military base signage, Display Logic's ITAR registration qualifies the installation — a requirement Samsung and LG cannot meet. For healthcare signage, add privacy film for HIPAA-compliant waiting area displays.",
+    badge: "ITAR SIGNAGE",
+    badgeColor: COLORS.accent,
+  },
+  iot: {
+    rec_tech: "memory-lcd",
+    rec_enhancements: [],
+    rec_interface: "spi",
+    message: "For battery-powered IoT, **Memory LCD** is the right choice — bistable reflective display that consumes zero power between updates. It's always-on with no power draw, sunlight readable without a backlight, and communicates over SPI/I2C. For slightly more advanced IoT with flexible form factor needs, Ynvisible electrochromic printed displays are Display Logic's most differentiated technology.",
+    badge: "ZERO POWER",
+    badgeColor: COLORS.green,
+  },
+  commercial: {
+    rec_tech: "tft-lcd",
+    rec_enhancements: ["anti-glare"],
+    rec_interface: "hdmi",
+    message: "For general commercial applications, a **TFT-LCD** covers most requirements. Start with your size and orientation, then add enhancements based on the specific environment. If you're unsure, optical bonding is the single highest-value upgrade — it improves readability, sealing, and durability in one step.",
+    badge: "STANDARD",
+    badgeColor: COLORS.textMid,
+  },
+};
+
+function getAIResponse(input, config) {
+  const q = input.toLowerCase();
+  if (q.includes("100") && (q.includes("temp") || q.includes("c") || q.includes("heat") || q.includes("hot"))) {
+    return { text: "For 100°C operating environments, you need a TFT-LCD rated for wide industrial temperature range (typically -40°C to +85°C operating, up to +100°C storage). Add **heat rejection film** to manage thermal load and prevent internal temperature buildup. Optical bonding seals out moisture and particulates that accelerate at high temps. The enclosure design matters too — Display Logic can engineer the full thermal stack.", tech: "tft-lcd", enhancements: ["heat-rejection", "optical-bonding", "protection-layer"] };
+  }
+  if (q.includes("milit") || q.includes("itar") || q.includes("defense") || q.includes("mil-spec")) {
+    return { text: "Display Logic is **ITAR registered** — one of the few display engineering companies with this qualification. For military displays, I recommend TFT-LCD with EMI/RFI shielding (MIL-STD compliance), optical bonding for field serviceability, and anti-reflection for sunlit vehicle cockpits. State your platform (vehicle, handheld, fixed installation) and I can refine the spec further.", tech: "tft-lcd", enhancements: ["emi-rfi", "optical-bonding", "anti-reflection"], app: "military" };
+  }
+  if (q.includes("outdoor") || q.includes("sun") || q.includes("bright") || q.includes("kiosk") || q.includes("ev") || q.includes("charging")) {
+    return { text: "For outdoor use, you need a minimum **800 nit** display — Display Logic's xTremeLCD hits **1200 nit** with POE (single Cat6 cable, no separate power run). Optical bonding eliminates the air gap that causes reflective washout in direct sun. Anti-reflection film drops surface reflectance below 0.5%. This is the only ITAR-registered 1200 nit POE monitor in the US market.", tech: "tft-lcd", enhancements: ["high-brightness", "optical-bonding", "anti-reflection", "poe"], app: "outdoor" };
+  }
+  if (q.includes("touch") || q.includes("interactive") || q.includes("finger") || q.includes("glove")) {
+    return { text: "For touch, the choice is **PCAP** (projected capacitive) vs **Resistive**. PCAP is premium — multi-touch, responsive, works with thin gloves, used in medical and consumer-grade industrial. Resistive works with thick gloves, stylus, and in harsh chemical environments where PCAP glass could be damaged. Combine either with optical bonding for a sealed, unified stack.", tech: "tft-lcd", enhancements: ["pcap-touch", "optical-bonding"] };
+  }
+  if (q.includes("flexible") || q.includes("curved") || q.includes("conform") || q.includes("bend") || q.includes("wearable")) {
+    return { text: "For flexible or conformable displays, Display Logic offers **Ynvisible printed electrochromic displays** — the only US OEM partner for this technology. They're produced on thin film substrates, can conform to curved surfaces, and are bistable (zero power image retention). Ideal for medical wearables, smart packaging, and military wearable electronics. ITAR qualified.", tech: "electrochromic", enhancements: [], app: "iot" };
+  }
+  if (q.includes("battery") || q.includes("low power") || q.includes("power") || q.includes("iot") || q.includes("zero")) {
+    return { text: "For ultra-low power, **Memory LCD** is the answer — bistable reflective, always-on, zero power between updates. Communicates over SPI. For slightly more capable IoT displays, E-Paper (EPD) gives you high contrast and sunlight readability at near-zero power. Both are available through Display Logic with engineering support.", tech: "memory-lcd", enhancements: [], app: "iot" };
+  }
+  if (q.includes("medical") || q.includes("hospital") || q.includes("hipaa") || q.includes("clinical") || q.includes("surgery")) {
+    return { text: "Medical displays need **privacy film** to restrict viewing angles for HIPAA compliance, optical bonding for cleanable sealed surfaces, and PCAP touch for gloved operation. OLED gives you true blacks for diagnostic imaging. For VA hospital or federal medical programs, Display Logic's ITAR registration qualifies the purchase for government procurement.", tech: "oled", enhancements: ["privacy-film", "optical-bonding", "pcap-touch"], app: "medical" };
+  }
+  if (q.includes("emi") || q.includes("rfi") || q.includes("shield") || q.includes("interference")) {
+    return { text: "EMI/RFI shielding is applied as a conductive film layer to the display stack. It's required for MIL-STD-461 compliance in defense programs and is used in medical devices to prevent interference with sensitive equipment. Display Logic's ITAR registration covers this build for defense program procurement. No competitor combining ITAR + EMI shielding + display assembly exists in the US market.", tech: "tft-lcd", enhancements: ["emi-rfi", "optical-bonding"], app: "military" };
+  }
+  if (q.includes("optical bond") || q.includes("bonding") || q.includes("air gap")) {
+    return { text: "Optical bonding fills the air gap between the panel and cover glass with optically clear adhesive — eliminating the reflective interface that causes washout in bright light. Display Logic holds a **patented reworkable optical bonding process**, unique in the market. Unlike competitors' permanent bonding, Display Logic's process allows field rework and panel replacement. It improves outdoor readability by up to 3× and seals the display against moisture and particulates.", tech: "tft-lcd", enhancements: ["optical-bonding"] };
+  }
+  if (q.includes("poe") || q.includes("ethernet") || q.includes("single cable") || q.includes("cat6")) {
+    return { text: "Power over Ethernet (POE) delivers both power and video over a single Cat6 cable — no separate power conduit to the display location. Display Logic's xTremeLCD 32-inch **1200 nit POE monitor** (802.3bt, 90W) is the only ITAR-registered high-brightness POE display in the US market. Ideal for EV charging stations, smart city kiosks, military base installations, and factory floor deployments.", tech: "tft-lcd", enhancements: ["poe", "high-brightness"], app: "outdoor" };
+  }
+  return { text: `Good question. Based on what you've described, let me configure a starting point for you. Use the steps below to refine — or ask me a more specific question about your environment, power constraints, or compliance requirements.`, tech: null, enhancements: [] };
+}
+
+export default function DisplayBuilder() {
+  const [step, setStep] = useState(0);
+  const [aiInput, setAiInput] = useState("");
+  const [aiMessages, setAiMessages] = useState([
+    { role: "system", text: "I'm the Display Logic AI advisor. Tell me about your application — environment, power constraints, compliance requirements, or any technical challenge. I'll recommend a display configuration and guide you through the build." }
+  ]);
+  const [config, setConfig] = useState({
+    app: null, tech: null, size: 10, orientation: "landscape",
+    enhancements: [], interface: "hdmi", quantity: 1,
+    name: "", email: "", company: "", notes: ""
+  });
+  const [aiLoading, setAiLoading] = useState(false);
+  const chatEndRef = useRef(null);
+  const [quoteSubmitted, setQuoteSubmitted] = useState(false);
+  const [animIn, setAnimIn] = useState(true);
+
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [aiMessages]);
+
+  useEffect(() => {
+    setAnimIn(false);
+    const t = setTimeout(() => setAnimIn(true), 50);
+    return () => clearTimeout(t);
+  }, [step]);
+
+  const sendAI = async () => {
+    if (!aiInput.trim()) return;
+    const userMsg = aiInput.trim();
+    setAiInput("");
+    setAiMessages(m => [...m, { role: "user", text: userMsg }]);
+    setAiLoading(true);
+    try {
+      const response = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-20250514",
+          max_tokens: 1000,
+          system: `You are the Display Logic USA AI Display Advisor. You help OEM engineers, procurement managers, and product designers configure the right display for their application.
+
+DISPLAY LOGIC PRODUCT KNOWLEDGE:
+
+- Technologies: TFT-LCD (up to 1200 nit xTremeLCD, POE option), OLED (thin, high contrast, medical), E-Paper/EPD (zero power, sunlight readable), Memory LCD (bistable, IoT, ultra-low power), Electrochromic Printed Displays (Ynvisible partnership, flexible, conformable), FALD (Full Array Local Dimming, HDR, pro AV)
+- Enhancements: Optical Bonding (PATENTED reworkable process - unique in market), PCAP Touch (multi-touch, gloved), Resistive Touch (stylus, harsh environments), Anti-Reflection (<0.5% reflectance), Anti-Glare, EMI/RFI Shielding (MIL-STD), Privacy Film (HIPAA), Heat Rejection, High Brightness (xTremeLCD 1200 nit), Wide Viewing Angle, Protection Layer, POE (802.3bt 90W)
+- Interfaces: HDMI, LVDS, eDP, MIPI DSI, SPI/I2C, HDBaseT/BasET (100m over Cat5e/6 - unique product)
+- Key differentiators: ITAR REGISTERED, Patented optical bonding (reworkable), 30-year manufacturer network for EOL, Hauppauge NY (Long Island defense corridor), LCD System Builder, US engineering support
+- Applications served: Military/Defense (ITAR), Medical/Healthcare (HIPAA), Industrial, Outdoor/Kiosk, Transit/Vehicle, Digital Signage, IoT/Embedded, Commercial
+- Competitors cannot match: ITAR + optical bonding + full display stack. No other US company offers all three.
+
+Current user config: ${JSON.stringify(config)}
+
+RESPONSE STYLE: Be direct, technical, specific. Reference specific Display Logic product advantages by name. Keep responses under 120 words. End with a specific recommendation for their next configuration step. Bold key technical terms with **asterisks**.`,
+          messages: [
+            ...aiMessages.filter(m => m.role !== "system").map(m => ({ role: m.role === "user" ? "user" : "assistant", content: m.text })),
+            { role: "user", content: userMsg }
+          ]
+        })
+      });
+      const data = await response.json();
+      const reply = data.content?.[0]?.text || "Let me help you configure the right display. What's your primary application environment?";
+      setAiMessages(m => [...m, { role: "assistant", text: reply }]);
+      const local = getAIResponse(userMsg, config);
+      if (local.tech) setConfig(c => ({ ...c, tech: local.tech }));
+      if (local.app) setConfig(c => ({ ...c, app: local.app }));
+      if (local.enhancements?.length) {
+        setConfig(c => ({ ...c, enhancements: [...new Set([...c.enhancements, ...local.enhancements])] }));
+      }
+    } catch {
+      const local = getAIResponse(userMsg, config);
+      setAiMessages(m => [...m, { role: "assistant", text: local.text }]);
+      if (local.tech) setConfig(c => ({ ...c, tech: local.tech }));
+      if (local.app) setConfig(c => ({ ...c, app: local.app }));
+      if (local.enhancements?.length) {
+        setConfig(c => ({ ...c, enhancements: [...new Set([...c.enhancements, ...local.enhancements])] }));
+      }
+    }
+    setAiLoading(false);
+  };
+
+  const toggleEnhancement = (id) => {
+    setConfig(c => ({
+      ...c,
+      enhancements: c.enhancements.includes(id)
+        ? c.enhancements.filter(e => e !== id)
+        : [...c.enhancements, id]
+    }));
+  };
+
+  const selectedTech = TECHNOLOGIES.find(t => t.id === config.tech);
+  const selectedApp = APPLICATIONS.find(a => a.id === config.app);
+  const aiRec = config.app ? AI_KNOWLEDGE[config.app] : null;
+
+  const getPreviewSize = () => {
+    const s = config.size;
+    const isLandscape = config.orientation === "landscape";
+    const base = Math.min(160, Math.max(60, s * 4));
+    return isLandscape ? { w: base, h: base * 0.6 } : { w: base * 0.6, h: base };
+  };
+
+  const prev = getPreviewSize();
+  const hasEnhancement = (id) => config.enhancements.includes(id);
+
+  const STEPS = ["Welcome", "AI Advisor", "Application", "Technology", "Size", "Enhancements", "Interface", "Quote"];
+
+  return (
+    <div style={{ background: COLORS.bg, minHeight: "100vh", fontFamily: "'Courier New', Courier, monospace", color: COLORS.text }}>
+      {/* TOP BAR */}
+      <div style={{ background: COLORS.surface, borderBottom: `1px solid ${COLORS.border}`, padding: "0 24px", display: "flex", alignItems: "center", justifyContent: "space-between", height: 52 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <div style={{ width: 28, height: 28, background: COLORS.accent, borderRadius: 4, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: "bold", color: COLORS.bg }}>DL</div>
+          <span style={{ fontSize: 13, fontWeight: "bold", letterSpacing: "0.15em", color: COLORS.text }}>DISPLAY LOGIC</span>
+          <span style={{ fontSize: 11, color: COLORS.textDim, letterSpacing: "0.1em" }}>// SYSTEM BUILDER 2.0</span>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+          {["ITAR REGISTERED", "US ENGINEERING", "HAUPPAUGE NY"].map(tag => (
+            <span key={tag} style={{ fontSize: 9, padding: "2px 7px", background: "rgba(14,165,233,0.1)", border: `1px solid ${COLORS.borderBright}`, borderRadius: 3, color: COLORS.accent, letterSpacing: "0.12em" }}>{tag}</span>
+          ))}
+        </div>
+      </div>
+
+      <div style={{ display: "flex", height: "calc(100vh - 52px)" }}>
+        {/* LEFT SIDEBAR */}
+        {step > 0 && (
+          <div style={{ width: 180, background: COLORS.surface, borderRight: `1px solid ${COLORS.border}`, padding: "20px 0", flexShrink: 0 }}>
+            <div style={{ padding: "0 16px 16px", fontSize: 9, color: COLORS.textDim, letterSpacing: "0.15em" }}>BUILD PROGRESS</div>
+            {STEPS.slice(1).map((s, i) => {
+              const idx = i + 1;
+              const done = step > idx;
+              const active = step === idx;
+              return (
+                <div key={s} onClick={() => idx < step && setStep(idx)}
+                  style={{ padding: "10px 16px", display: "flex", alignItems: "center", gap: 10, cursor: idx < step ? "pointer" : "default",
+                    background: active ? COLORS.accentGlow : "transparent",
+                    borderLeft: active ? `2px solid ${COLORS.accent}` : "2px solid transparent" }}>
+                  <div style={{ width: 20, height: 20, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: "bold",
+                    background: done ? COLORS.green : active ? COLORS.accent : COLORS.border,
+                    color: done || active ? COLORS.bg : COLORS.textDim }}>
+                    {done ? "✓" : idx}
+                  </div>
+                  <span style={{ fontSize: 11, color: active ? COLORS.accent : done ? COLORS.text : COLORS.textDim, letterSpacing: "0.05em" }}>{s}</span>
+                </div>
+              );
+            })}
+
+            {step >= 3 && (
+              <div style={{ margin: "20px 12px 0", padding: 12, background: COLORS.card, border: `1px solid ${COLORS.border}`, borderRadius: 6 }}>
+                <div style={{ fontSize: 9, color: COLORS.textDim, letterSpacing: "0.12em", marginBottom: 10 }}>LIVE PREVIEW</div>
+                <div style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 80 }}>
+                  <div style={{
+                    width: prev.w, height: prev.h,
+                    background: hasEnhancement("optical-bonding")
+                      ? "linear-gradient(135deg, #0EA5E9 0%, #06B6D4 100%)"
+                      : selectedTech?.id === "oled" ? "#1a0030"
+                      : selectedTech?.id === "epaper" ? "#e8e8e0"
+                      : selectedTech?.id === "electrochromic" ? "#2d1b4e"
+                      : "#0a1628",
+                    border: `2px solid ${selectedTech?.color || COLORS.borderBright}`,
+                    borderRadius: 4,
+                    boxShadow: hasEnhancement("high-brightness") ? `0 0 20px ${COLORS.gold}60` : `0 0 8px ${selectedTech?.color || COLORS.accent}40`,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    fontSize: 20, position: "relative", transition: "all 0.3s ease",
+                    overflow: "hidden"
+                  }}>
+                    <span style={{ opacity: 0.7 }}>{selectedTech?.icon || "▦"}</span>
+                    {hasEnhancement("pcap-touch") && <div style={{ position: "absolute", inset: 0, border: "1px solid rgba(255,255,255,0.2)", borderRadius: 3 }} />}
+                    {hasEnhancement("emi-rfi") && <div style={{ position: "absolute", inset: 2, background: "repeating-linear-gradient(45deg, transparent, transparent 3px, rgba(239,68,68,0.1) 3px, rgba(239,68,68,0.1) 4px)" }} />}
+                    {hasEnhancement("privacy-film") && <div style={{ position: "absolute", inset: 0, background: "rgba(139,92,246,0.2)" }} />}
+                  </div>
+                </div>
+                <div style={{ marginTop: 8, fontSize: 9, color: COLORS.textMid, textAlign: "center" }}>
+                  {config.size}" {selectedTech?.label || "—"}
+                </div>
+                {config.enhancements.length > 0 && (
+                  <div style={{ marginTop: 4, display: "flex", flexWrap: "wrap", gap: 3 }}>
+                    {config.enhancements.slice(0, 4).map(id => {
+                      const e = ENHANCEMENTS.find(x => x.id === id);
+                      return <span key={id} style={{ fontSize: 8, padding: "1px 4px", background: COLORS.accentGlow, color: COLORS.accent, borderRadius: 2 }}>{e?.label?.split(" ")[0]}</span>;
+                    })}
+                    {config.enhancements.length > 4 && <span style={{ fontSize: 8, color: COLORS.textDim }}>+{config.enhancements.length - 4}</span>}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* MAIN CONTENT */}
+        <div style={{ flex: 1, overflow: "auto", padding: 32 }}>
+          <div style={{ maxWidth: 820, margin: "0 auto", opacity: animIn ? 1 : 0, transform: animIn ? "translateY(0)" : "translateY(12px)", transition: "all 0.25s ease" }}>
+
+            {/* STEP 0: WELCOME */}
+            {step === 0 && (
+              <div style={{ textAlign: "center", paddingTop: 60 }}>
+                <div style={{ fontSize: 10, letterSpacing: "0.3em", color: COLORS.accent, marginBottom: 16 }}>DISPLAY LOGIC USA // HAUPPAUGE, NY // ITAR REGISTERED</div>
+                <h1 style={{ fontSize: 42, fontWeight: "bold", margin: "0 0 16px", lineHeight: 1.1, letterSpacing: "-0.02em" }}>
+                  Build Your Display.<br />
+                  <span style={{ color: COLORS.accent }}>Exactly the way you need it.</span>
+                </h1>
+                <p style={{ fontSize: 15, color: COLORS.textMid, maxWidth: 500, margin: "0 auto 40px", lineHeight: 1.7 }}>
+                  30 years of display engineering. Every technology we offer. AI-guided configuration. Get a structured quote Keith can review without a phone call.
+                </p>
+                <div style={{ display: "flex", gap: 16, justifyContent: "center", marginBottom: 48 }}>
+                  {[["TFT-LCD", "▦", COLORS.accent], ["OLED", "◈", COLORS.violet], ["E-Paper", "◻", COLORS.green], ["Electrochromic", "◑", "#EC4899"], ["Memory LCD", "⬡", COLORS.gold], ["FALD", "⊞", "#F97316"]].map(([label, icon, color]) => (
+                    <div key={label} style={{ padding: "10px 16px", background: COLORS.card, border: `1px solid ${COLORS.border}`, borderRadius: 8, textAlign: "center", minWidth: 80 }}>
+                      <div style={{ fontSize: 20, color, marginBottom: 4 }}>{icon}</div>
+                      <div style={{ fontSize: 10, color: COLORS.textMid, letterSpacing: "0.05em" }}>{label}</div>
+                    </div>
+                  ))}
+                </div>
+                <button onClick={() => setStep(1)} style={{
+                  background: COLORS.accent, color: COLORS.bg, border: "none", padding: "16px 48px",
+                  fontSize: 14, fontWeight: "bold", letterSpacing: "0.15em", borderRadius: 6, cursor: "pointer",
+                  fontFamily: "'Courier New', monospace", boxShadow: `0 0 30px ${COLORS.accent}50`
+                }}>
+                  START BUILDING →
+                </button>
+                <div style={{ marginTop: 16, fontSize: 11, color: COLORS.textDim }}>or call Keith at 631-406-1922</div>
+              </div>
+            )}
+
+            {/* STEP 1: AI ADVISOR */}
+            {step === 1 && (
+              <div>
+                <div style={{ fontSize: 10, letterSpacing: "0.2em", color: COLORS.accent, marginBottom: 8 }}>STEP 1 OF 6</div>
+                <h2 style={{ fontSize: 28, margin: "0 0 8px", fontWeight: "bold" }}>AI Display Advisor</h2>
+                <p style={{ color: COLORS.textMid, fontSize: 13, marginBottom: 24 }}>Describe your application — environment, power requirements, compliance needs, or any technical challenge. I'll recommend a starting configuration.</p>
+
+                <div style={{ background: COLORS.card, border: `1px solid ${COLORS.border}`, borderRadius: 8, marginBottom: 20, minHeight: 280, maxHeight: 360, overflow: "auto", padding: 20, display: "flex", flexDirection: "column", gap: 16 }}>
+                  {aiMessages.map((msg, i) => (
+                    <div key={i} style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
+                      <div style={{
+                        width: 28, height: 28, borderRadius: "50%", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: "bold",
+                        background: msg.role === "user" ? COLORS.accentGlow : COLORS.border,
+                        color: msg.role === "user" ? COLORS.accent : COLORS.textMid,
+                        border: `1px solid ${msg.role === "user" ? COLORS.accent : COLORS.borderBright}`
+                      }}>
+                        {msg.role === "user" ? "YOU" : "DL"}
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: 9, color: COLORS.textDim, letterSpacing: "0.1em", marginBottom: 4 }}>
+                          {msg.role === "user" ? "YOU" : msg.role === "system" ? "DISPLAY LOGIC AI" : "AI ADVISOR"}
+                        </div>
+                        <div style={{ fontSize: 13, lineHeight: 1.7, color: msg.role === "user" ? COLORS.text : COLORS.textMid }}
+                          dangerouslySetInnerHTML={{ __html: msg.text.replace(/\*\*(.*?)\*\*/g, `<strong style="color:${COLORS.accent}">$1</strong>`) }} />
+                      </div>
+                    </div>
+                  ))}
+                  {aiLoading && (
+                    <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
+                      <div style={{ width: 28, height: 28, borderRadius: "50%", background: COLORS.border, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, color: COLORS.textMid }}>DL</div>
+                      <div style={{ fontSize: 13, color: COLORS.textDim, paddingTop: 6 }}>analyzing...</div>
+                    </div>
+                  )}
+                  <div ref={chatEndRef} />
+                </div>
+
+                <div style={{ display: "flex", gap: 10, marginBottom: 16 }}>
+                  <input
+                    value={aiInput} onChange={e => setAiInput(e.target.value)}
+                    onKeyDown={e => e.key === "Enter" && sendAI()}
+                    placeholder="e.g. I need a military display that works at 100°C..."
+                    style={{ flex: 1, background: COLORS.surface, border: `1px solid ${COLORS.borderBright}`, borderRadius: 6, padding: "12px 16px", color: COLORS.text, fontSize: 13, fontFamily: "'Courier New', monospace", outline: "none" }}
+                  />
+                  <button onClick={sendAI} style={{ background: COLORS.accent, color: COLORS.bg, border: "none", padding: "12px 20px", borderRadius: 6, cursor: "pointer", fontWeight: "bold", fontFamily: "'Courier New', monospace", fontSize: 13 }}>ASK</button>
+                </div>
+
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 28 }}>
+                  {["Military grade, 100°C", "Outdoor, sunlight readable", "Medical HIPAA display", "POE single cable", "Battery powered IoT", "ITAR compliant"].map(q => (
+                    <button key={q} onClick={() => { setAiInput(q); }} style={{ background: "transparent", border: `1px solid ${COLORS.border}`, color: COLORS.textMid, padding: "6px 12px", borderRadius: 4, cursor: "pointer", fontSize: 11, fontFamily: "'Courier New', monospace" }}>{q}</button>
+                  ))}
+                </div>
+
+                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                  <button onClick={() => setStep(0)} style={{ background: "transparent", border: `1px solid ${COLORS.border}`, color: COLORS.textMid, padding: "10px 24px", borderRadius: 6, cursor: "pointer", fontFamily: "'Courier New', monospace", fontSize: 12 }}>← BACK</button>
+                  <button onClick={() => setStep(2)} style={{ background: COLORS.accent, color: COLORS.bg, border: "none", padding: "10px 32px", borderRadius: 6, cursor: "pointer", fontWeight: "bold", fontFamily: "'Courier New', monospace", fontSize: 12, letterSpacing: "0.1em" }}>
+                    {aiMessages.length > 1 ? "LOOKS GOOD, CONTINUE →" : "SKIP, BUILD MANUALLY →"}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* STEP 2: APPLICATION */}
+            {step === 2 && (
+              <div>
+                <div style={{ fontSize: 10, letterSpacing: "0.2em", color: COLORS.accent, marginBottom: 8 }}>STEP 2 OF 6</div>
+                <h2 style={{ fontSize: 28, margin: "0 0 8px", fontWeight: "bold" }}>What's the application?</h2>
+                <p style={{ color: COLORS.textMid, fontSize: 13, marginBottom: 24 }}>Your application determines compliance requirements, operating environment, and the right technology stack.</p>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginBottom: 28 }}>
+                  {APPLICATIONS.map(app => (
+                    <div key={app.id} onClick={() => setConfig(c => ({ ...c, app: app.id }))}
+                      style={{ padding: "18px 14px", background: config.app === app.id ? `${app.color}20` : COLORS.card, border: `2px solid ${config.app === app.id ? app.color : COLORS.border}`, borderRadius: 8, cursor: "pointer", transition: "all 0.15s", textAlign: "center" }}>
+                      <div style={{ fontSize: 22, marginBottom: 8 }}>{app.icon}</div>
+                      <div style={{ fontSize: 12, fontWeight: "bold", marginBottom: 4, color: config.app === app.id ? app.color : COLORS.text }}>{app.label}</div>
+                      <div style={{ fontSize: 10, color: COLORS.textDim, lineHeight: 1.5 }}>{app.desc}</div>
+                    </div>
+                  ))}
+                </div>
+
+                {config.app && aiRec && (
+                  <div style={{ padding: 16, background: `${aiRec.badgeColor}12`, border: `1px solid ${aiRec.badgeColor}50`, borderRadius: 8, marginBottom: 24, display: "flex", gap: 14, alignItems: "flex-start" }}>
+                    <div style={{ fontSize: 9, padding: "3px 8px", background: aiRec.badgeColor, color: COLORS.bg, borderRadius: 3, fontWeight: "bold", letterSpacing: "0.1em", flexShrink: 0, marginTop: 2 }}>{aiRec.badge}</div>
+                    <div style={{ fontSize: 12, color: COLORS.textMid, lineHeight: 1.7 }}
+                      dangerouslySetInnerHTML={{ __html: aiRec.message.replace(/\*\*(.*?)\*\*/g, `<strong style="color:${COLORS.text}">$1</strong>`) }} />
+                  </div>
+                )}
+
+                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                  <button onClick={() => setStep(1)} style={{ background: "transparent", border: `1px solid ${COLORS.border}`, color: COLORS.textMid, padding: "10px 24px", borderRadius: 6, cursor: "pointer", fontFamily: "'Courier New', monospace", fontSize: 12 }}>← BACK</button>
+                  <button onClick={() => { if (aiRec && !config.tech) setConfig(c => ({ ...c, tech: aiRec.rec_tech, enhancements: aiRec.rec_enhancements, interface: aiRec.rec_interface })); setStep(3); }}
+                    disabled={!config.app}
+                    style={{ background: config.app ? COLORS.accent : COLORS.border, color: config.app ? COLORS.bg : COLORS.textDim, border: "none", padding: "10px 32px", borderRadius: 6, cursor: config.app ? "pointer" : "not-allowed", fontWeight: "bold", fontFamily: "'Courier New', monospace", fontSize: 12, letterSpacing: "0.1em" }}>
+                    NEXT: TECHNOLOGY →
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* STEP 3: TECHNOLOGY */}
+            {step === 3 && (
+              <div>
+                <div style={{ fontSize: 10, letterSpacing: "0.2em", color: COLORS.accent, marginBottom: 8 }}>STEP 3 OF 6</div>
+                <h2 style={{ fontSize: 28, margin: "0 0 8px", fontWeight: "bold" }}>Choose Display Technology</h2>
+                <p style={{ color: COLORS.textMid, fontSize: 13, marginBottom: 24 }}>
+                  {selectedApp ? `For ${selectedApp.label}, we recommend ` : "Select the core display technology. "}
+                  {aiRec ? <span style={{ color: COLORS.accent, fontWeight: "bold" }}>{TECHNOLOGIES.find(t => t.id === aiRec.rec_tech)?.label}</span> : ""}
+                  {aiRec ? " based on your application requirements." : "You can change this at any time."}
+                </p>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14, marginBottom: 28 }}>
+                  {TECHNOLOGIES.map(tech => {
+                    const isRec = aiRec?.rec_tech === tech.id;
+                    return (
+                      <div key={tech.id} onClick={() => setConfig(c => ({ ...c, tech: tech.id }))}
+                        style={{ padding: "20px 16px", background: config.tech === tech.id ? `${tech.color}18` : COLORS.card, border: `2px solid ${config.tech === tech.id ? tech.color : isRec ? `${tech.color}60` : COLORS.border}`, borderRadius: 8, cursor: "pointer", transition: "all 0.15s", position: "relative" }}>
+                        {isRec && <div style={{ position: "absolute", top: 8, right: 8, fontSize: 8, padding: "2px 6px", background: tech.color, color: COLORS.bg, borderRadius: 3, fontWeight: "bold" }}>RECOMMENDED</div>}
+                        {tech.tag && <div style={{ fontSize: 8, padding: "2px 7px", background: `${tech.color}25`, color: tech.color, borderRadius: 3, marginBottom: 10, display: "inline-block", letterSpacing: "0.08em" }}>{tech.tag}</div>}
+                        <div style={{ fontSize: 28, color: tech.color, marginBottom: 10 }}>{tech.icon}</div>
+                        <div style={{ fontSize: 14, fontWeight: "bold", marginBottom: 6, color: config.tech === tech.id ? tech.color : COLORS.text }}>{tech.label}</div>
+                        <div style={{ fontSize: 11, color: COLORS.textMid, lineHeight: 1.6 }}>{tech.desc}</div>
+                      </div>
+                    );
+                  })}
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                  <button onClick={() => setStep(2)} style={{ background: "transparent", border: `1px solid ${COLORS.border}`, color: COLORS.textMid, padding: "10px 24px", borderRadius: 6, cursor: "pointer", fontFamily: "'Courier New', monospace", fontSize: 12 }}>← BACK</button>
+                  <button onClick={() => setStep(4)} disabled={!config.tech}
+                    style={{ background: config.tech ? COLORS.accent : COLORS.border, color: config.tech ? COLORS.bg : COLORS.textDim, border: "none", padding: "10px 32px", borderRadius: 6, cursor: config.tech ? "pointer" : "not-allowed", fontWeight: "bold", fontFamily: "'Courier New', monospace", fontSize: 12, letterSpacing: "0.1em" }}>
+                    NEXT: SIZE →
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* STEP 4: SIZE */}
+            {step === 4 && (
+              <div>
+                <div style={{ fontSize: 10, letterSpacing: "0.2em", color: COLORS.accent, marginBottom: 8 }}>STEP 4 OF 6</div>
+                <h2 style={{ fontSize: 28, margin: "0 0 8px", fontWeight: "bold" }}>Size & Orientation</h2>
+                <p style={{ color: COLORS.textMid, fontSize: 13, marginBottom: 28 }}>Display Logic sources panels from 0.5" to 110" diagonal. Select your size and orientation.</p>
+
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: 8, marginBottom: 24 }}>
+                  {SIZE_PRESETS.map(p => (
+                    <div key={p.label} onClick={() => setConfig(c => ({ ...c, size: Math.round((p.min + p.max) / 2) }))}
+                      style={{ padding: "12px 8px", background: config.size >= p.min && config.size <= p.max ? COLORS.accentGlow : COLORS.card, border: `1px solid ${config.size >= p.min && config.size <= p.max ? COLORS.accent : COLORS.border}`, borderRadius: 6, cursor: "pointer", textAlign: "center" }}>
+                      <div style={{ fontSize: 16, marginBottom: 4 }}>{p.icon}</div>
+                      <div style={{ fontSize: 10, fontWeight: "bold", color: config.size >= p.min && config.size <= p.max ? COLORS.accent : COLORS.text }}>{p.label}</div>
+                      <div style={{ fontSize: 9, color: COLORS.textDim }}>{p.min}–{p.max}"</div>
+                    </div>
+                  ))}
+                </div>
+
+                <div style={{ background: COLORS.card, border: `1px solid ${COLORS.border}`, borderRadius: 8, padding: 24, marginBottom: 20 }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+                    <span style={{ fontSize: 13, color: COLORS.textMid }}>Diagonal Size</span>
+                    <span style={{ fontSize: 24, fontWeight: "bold", color: COLORS.accent }}>{config.size}"</span>
+                  </div>
+                  <input type="range" min="1" max="110" value={config.size} onChange={e => setConfig(c => ({ ...c, size: parseInt(e.target.value) }))}
+                    style={{ width: "100%", accentColor: COLORS.accent, cursor: "pointer" }} />
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: COLORS.textDim, marginTop: 6 }}>
+                    <span>1" wearable</span><span>55" signage</span><span>110" large format</span>
+                  </div>
+                </div>
+
+                <div style={{ display: "flex", gap: 10, marginBottom: 28 }}>
+                  {[["landscape", "Landscape ▬"], ["portrait", "Portrait ▯"], ["square", "Square ▪"]].map(([val, label]) => (
+                    <div key={val} onClick={() => setConfig(c => ({ ...c, orientation: val }))}
+                      style={{ flex: 1, padding: "12px 16px", background: config.orientation === val ? COLORS.accentGlow : COLORS.card, border: `2px solid ${config.orientation === val ? COLORS.accent : COLORS.border}`, borderRadius: 8, cursor: "pointer", textAlign: "center", fontSize: 13, color: config.orientation === val ? COLORS.accent : COLORS.textMid }}>
+                      {label}
+                    </div>
+                  ))}
+                </div>
+
+                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                  <button onClick={() => setStep(3)} style={{ background: "transparent", border: `1px solid ${COLORS.border}`, color: COLORS.textMid, padding: "10px 24px", borderRadius: 6, cursor: "pointer", fontFamily: "'Courier New', monospace", fontSize: 12 }}>← BACK</button>
+                  <button onClick={() => setStep(5)} style={{ background: COLORS.accent, color: COLORS.bg, border: "none", padding: "10px 32px", borderRadius: 6, cursor: "pointer", fontWeight: "bold", fontFamily: "'Courier New', monospace", fontSize: 12, letterSpacing: "0.1em" }}>NEXT: ENHANCEMENTS →</button>
+                </div>
+              </div>
+            )}
+
+            {/* STEP 5: ENHANCEMENTS */}
+            {step === 5 && (
+              <div>
+                <div style={{ fontSize: 10, letterSpacing: "0.2em", color: COLORS.accent, marginBottom: 8 }}>STEP 5 OF 6</div>
+                <h2 style={{ fontSize: 28, margin: "0 0 8px", fontWeight: "bold" }}>Enhancements & Options</h2>
+                <p style={{ color: COLORS.textMid, fontSize: 13, marginBottom: 8 }}>Build your display stack. Highlighted options are recommended for your application.</p>
+                {aiRec && <p style={{ fontSize: 11, color: COLORS.textDim, marginBottom: 20 }}>Pre-selected based on {selectedApp?.label} requirements. Add or remove as needed.</p>}
+
+                {[["optical", "Optical Enhancements"], ["touch", "Touch Interface"], ["compliance", "Compliance & Shielding"], ["power", "Power & Interface"], ["environmental", "Environmental"], ["physical", "Physical Protection"]].map(([cat, catLabel]) => {
+                  const items = ENHANCEMENTS.filter(e => e.category === cat);
+                  return (
+                    <div key={cat} style={{ marginBottom: 20 }}>
+                      <div style={{ fontSize: 10, letterSpacing: "0.15em", color: COLORS.textDim, marginBottom: 10, paddingBottom: 6, borderBottom: `1px solid ${COLORS.border}` }}>{catLabel}</div>
+                      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
+                        {items.map(enh => {
+                          const sel = config.enhancements.includes(enh.id);
+                          const rec = aiRec?.rec_enhancements.includes(enh.id);
+                          return (
+                            <div key={enh.id} onClick={() => toggleEnhancement(enh.id)}
+                              style={{ padding: "14px 12px", background: sel ? COLORS.accentGlow : COLORS.card, border: `2px solid ${sel ? COLORS.accent : rec ? `${COLORS.accent}40` : COLORS.border}`, borderRadius: 8, cursor: "pointer", transition: "all 0.15s", position: "relative" }}>
+                              {enh.highlight && <div style={{ position: "absolute", top: -1, right: -1, fontSize: 7, padding: "2px 5px", background: COLORS.gold, color: COLORS.bg, borderRadius: "0 7px 0 4px", fontWeight: "bold" }}>KEY</div>}
+                              {rec && !sel && <div style={{ position: "absolute", top: -1, left: -1, fontSize: 7, padding: "2px 5px", background: COLORS.accentDim, color: COLORS.bg, borderRadius: "7px 0 4px 0", fontWeight: "bold" }}>REC</div>}
+                              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                                <span style={{ fontSize: 14, color: sel ? COLORS.accent : COLORS.textMid }}>{enh.icon}</span>
+                                <span style={{ fontSize: 12, fontWeight: "bold", color: sel ? COLORS.accent : COLORS.text }}>{enh.label}</span>
+                                {sel && <span style={{ marginLeft: "auto", fontSize: 12, color: COLORS.accent }}>✓</span>}
+                              </div>
+                              <div style={{ fontSize: 10, color: COLORS.textDim, lineHeight: 1.5 }}>{enh.desc}</div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+
+                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                  <button onClick={() => setStep(4)} style={{ background: "transparent", border: `1px solid ${COLORS.border}`, color: COLORS.textMid, padding: "10px 24px", borderRadius: 6, cursor: "pointer", fontFamily: "'Courier New', monospace", fontSize: 12 }}>← BACK</button>
+                  <button onClick={() => setStep(6)} style={{ background: COLORS.accent, color: COLORS.bg, border: "none", padding: "10px 32px", borderRadius: 6, cursor: "pointer", fontWeight: "bold", fontFamily: "'Courier New', monospace", fontSize: 12, letterSpacing: "0.1em" }}>NEXT: INTERFACE →</button>
+                </div>
+              </div>
+            )}
+
+            {/* STEP 6: INTERFACE */}
+            {step === 6 && (
+              <div>
+                <div style={{ fontSize: 10, letterSpacing: "0.2em", color: COLORS.accent, marginBottom: 8 }}>STEP 6 OF 6</div>
+                <h2 style={{ fontSize: 28, margin: "0 0 8px", fontWeight: "bold" }}>Signal Interface</h2>
+                <p style={{ color: COLORS.textMid, fontSize: 13, marginBottom: 24 }}>How does the display connect to your signal source? Display Logic supports all major interfaces including the unique BasET (100m over Cat5e/6).</p>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, marginBottom: 28 }}>
+                  {INTERFACES.map(ifc => (
+                    <div key={ifc.id} onClick={() => setConfig(c => ({ ...c, interface: ifc.id }))}
+                      style={{ padding: "20px 16px", background: config.interface === ifc.id ? COLORS.accentGlow : COLORS.card, border: `2px solid ${config.interface === ifc.id ? COLORS.accent : COLORS.border}`, borderRadius: 8, cursor: "pointer", textAlign: "center", transition: "all 0.15s" }}>
+                      <div style={{ width: 36, height: 36, borderRadius: "50%", background: config.interface === ifc.id ? COLORS.accent : COLORS.border, color: config.interface === ifc.id ? COLORS.bg : COLORS.textMid, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: 14, margin: "0 auto 12px" }}>{ifc.icon}</div>
+                      <div style={{ fontSize: 14, fontWeight: "bold", color: config.interface === ifc.id ? COLORS.accent : COLORS.text }}>{ifc.label}</div>
+                      {ifc.id === "hdbaset" && <div style={{ fontSize: 9, color: COLORS.gold, marginTop: 4 }}>100m unique product</div>}
+                    </div>
+                  ))}
+                </div>
+
+                <div style={{ background: COLORS.card, border: `1px solid ${COLORS.border}`, borderRadius: 8, padding: 20, marginBottom: 24 }}>
+                  <div style={{ fontSize: 11, color: COLORS.textDim, marginBottom: 12, letterSpacing: "0.1em" }}>QUANTITY & NOTES</div>
+                  <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 12 }}>
+                    <span style={{ fontSize: 12, color: COLORS.textMid, width: 80 }}>Quantity</span>
+                    <input type="number" min="1" value={config.quantity} onChange={e => setConfig(c => ({ ...c, quantity: parseInt(e.target.value) || 1 }))}
+                      style={{ width: 80, background: COLORS.surface, border: `1px solid ${COLORS.borderBright}`, borderRadius: 6, padding: "8px 12px", color: COLORS.text, fontSize: 13, fontFamily: "'Courier New', monospace" }} />
+                    <span style={{ fontSize: 11, color: COLORS.textDim }}>units (prototype or production run)</span>
+                  </div>
+                  <textarea placeholder="Additional requirements, constraints, or notes for Keith..." value={config.notes} onChange={e => setConfig(c => ({ ...c, notes: e.target.value }))}
+                    style={{ width: "100%", minHeight: 80, background: COLORS.surface, border: `1px solid ${COLORS.borderBright}`, borderRadius: 6, padding: "10px 12px", color: COLORS.text, fontSize: 12, fontFamily: "'Courier New', monospace", resize: "vertical", boxSizing: "border-box" }} />
+                </div>
+
+                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                  <button onClick={() => setStep(5)} style={{ background: "transparent", border: `1px solid ${COLORS.border}`, color: COLORS.textMid, padding: "10px 24px", borderRadius: 6, cursor: "pointer", fontFamily: "'Courier New', monospace", fontSize: 12 }}>← BACK</button>
+                  <button onClick={() => setStep(7)} style={{ background: COLORS.accent, color: COLORS.bg, border: "none", padding: "10px 32px", borderRadius: 6, cursor: "pointer", fontWeight: "bold", fontFamily: "'Courier New', monospace", fontSize: 12, letterSpacing: "0.1em" }}>REVIEW & REQUEST QUOTE →</button>
+                </div>
+              </div>
+            )}
+
+            {/* STEP 7: QUOTE */}
+            {step === 7 && !quoteSubmitted && (
+              <div>
+                <div style={{ fontSize: 10, letterSpacing: "0.2em", color: COLORS.accent, marginBottom: 8 }}>QUOTE REQUEST</div>
+                <h2 style={{ fontSize: 28, margin: "0 0 8px", fontWeight: "bold" }}>Review Your Configuration</h2>
+                <p style={{ color: COLORS.textMid, fontSize: 13, marginBottom: 24 }}>Keith reviews all quote requests personally. Typical turnaround: same business day.</p>
+
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 24 }}>
+                  <div style={{ background: COLORS.card, border: `1px solid ${COLORS.border}`, borderRadius: 8, padding: 20 }}>
+                    <div style={{ fontSize: 11, color: COLORS.textDim, letterSpacing: "0.12em", marginBottom: 16 }}>DISPLAY SPECIFICATION</div>
+                    {[
+                      ["Application", selectedApp?.label || "—"],
+                      ["Technology", selectedTech?.label || "—"],
+                      ["Size", `${config.size}" ${config.orientation}`],
+                      ["Interface", INTERFACES.find(i => i.id === config.interface)?.label || "—"],
+                      ["Quantity", `${config.quantity} unit${config.quantity > 1 ? "s" : ""}`],
+                    ].map(([k, v]) => (
+                      <div key={k} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: `1px solid ${COLORS.border}`, fontSize: 12 }}>
+                        <span style={{ color: COLORS.textDim }}>{k}</span>
+                        <span style={{ color: COLORS.text, fontWeight: "bold" }}>{v}</span>
+                      </div>
+                    ))}
+                    <div style={{ paddingTop: 12 }}>
+                      <div style={{ fontSize: 11, color: COLORS.textDim, marginBottom: 8 }}>Enhancements</div>
+                      {config.enhancements.length === 0
+                        ? <span style={{ fontSize: 11, color: COLORS.textDim }}>None selected</span>
+                        : config.enhancements.map(id => {
+                            const e = ENHANCEMENTS.find(x => x.id === id);
+                            return <div key={id} style={{ fontSize: 11, color: COLORS.accent, padding: "3px 0" }}>✓ {e?.label}</div>;
+                          })}
+                    </div>
+                    {(config.app === "military" || config.enhancements.includes("emi-rfi")) ? (
+                      <div style={{ marginTop: 12, padding: "8px 12px", background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)", borderRadius: 6, fontSize: 10, color: COLORS.red, letterSpacing: "0.1em" }}>⚑ ITAR REGISTRATION APPLIES TO THIS BUILD</div>
+                    ) : null}
+                  </div>
+
+                  <div style={{ background: COLORS.card, border: `1px solid ${COLORS.border}`, borderRadius: 8, padding: 20 }}>
+                    <div style={{ fontSize: 11, color: COLORS.textDim, letterSpacing: "0.12em", marginBottom: 16 }}>YOUR CONTACT INFO</div>
+                    {[
+                      ["Name", "name", "text", "Your name"],
+                      ["Email", "email", "email", "your@company.com"],
+                      ["Company", "company", "text", "Company / org"],
+                    ].map(([label, field, type, placeholder]) => (
+                      <div key={field} style={{ marginBottom: 12 }}>
+                        <div style={{ fontSize: 10, color: COLORS.textDim, marginBottom: 4 }}>{label.toUpperCase()}</div>
+                        <input type={type} placeholder={placeholder} value={config[field]} onChange={e => setConfig(c => ({ ...c, [field]: e.target.value }))}
+                          style={{ width: "100%", background: COLORS.surface, border: `1px solid ${COLORS.borderBright}`, borderRadius: 6, padding: "10px 12px", color: COLORS.text, fontSize: 12, fontFamily: "'Courier New', monospace", boxSizing: "border-box" }} />
+                      </div>
+                    ))}
+                    <div style={{ fontSize: 11, color: COLORS.textDim, marginTop: 16, lineHeight: 1.7 }}>
+                      Keith Morton reviews every quote.<br />
+                      <span style={{ color: COLORS.accent }}>631-406-1922</span> · <span style={{ color: COLORS.accent }}>sales@displaylogic.com</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ display: "flex", gap: 12 }}>
+                  <button onClick={() => setStep(6)} style={{ background: "transparent", border: `1px solid ${COLORS.border}`, color: COLORS.textMid, padding: "12px 24px", borderRadius: 6, cursor: "pointer", fontFamily: "'Courier New', monospace", fontSize: 12 }}>← EDIT</button>
+                  <button
+                    onClick={() => { if (config.name && config.email) setQuoteSubmitted(true); }}
+                    disabled={!config.name || !config.email}
+                    style={{ flex: 1, background: config.name && config.email ? COLORS.accent : COLORS.border, color: config.name && config.email ? COLORS.bg : COLORS.textDim, border: "none", padding: "14px 32px", borderRadius: 6, cursor: config.name && config.email ? "pointer" : "not-allowed", fontWeight: "bold", fontFamily: "'Courier New', monospace", fontSize: 14, letterSpacing: "0.15em", boxShadow: config.name && config.email ? `0 0 24px ${COLORS.accent}50` : "none" }}>
+                    SUBMIT QUOTE REQUEST →
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* QUOTE SUBMITTED */}
+            {step === 7 && quoteSubmitted && (
+              <div style={{ textAlign: "center", paddingTop: 60 }}>
+                <div style={{ fontSize: 48, marginBottom: 20 }}>✓</div>
+                <h2 style={{ fontSize: 32, margin: "0 0 12px", color: COLORS.green }}>Quote Request Submitted</h2>
+                <p style={{ color: COLORS.textMid, fontSize: 15, maxWidth: 480, margin: "0 auto 32px", lineHeight: 1.7 }}>
+                  Keith has your full display specification. He'll review the build, confirm feasibility, and follow up with pricing.
+                </p>
+                <div style={{ display: "inline-block", padding: "20px 32px", background: COLORS.card, border: `1px solid ${COLORS.border}`, borderRadius: 8, marginBottom: 32, textAlign: "left" }}>
+                  <div style={{ fontSize: 11, color: COLORS.textDim, marginBottom: 12, letterSpacing: "0.12em" }}>WHAT KEITH RECEIVED</div>
+                  {[
+                    ["Technology", selectedTech?.label],
+                    ["Application", selectedApp?.label],
+                    ["Size", `${config.size}" ${config.orientation}`],
+                    ["Enhancements", config.enhancements.length > 0 ? `${config.enhancements.length} selected` : "None"],
+                    ["Qty", `${config.quantity} unit${config.quantity > 1 ? "s" : ""}`],
+                    ["ITAR", config.app === "military" ? "YES — flagged" : "N/A"],
+                  ].map(([k, v]) => (
+                    <div key={k} style={{ display: "flex", gap: 20, padding: "6px 0", fontSize: 12 }}>
+                      <span style={{ color: COLORS.textDim, width: 100 }}>{k}</span>
+                      <span style={{ color: COLORS.accent, fontWeight: "bold" }}>{v}</span>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ display: "flex", gap: 12, justifyContent: "center" }}>
+                  <button onClick={() => {
+                    setStep(0);
+                    setConfig({ app: null, tech: null, size: 10, orientation: "landscape", enhancements: [], interface: "hdmi", quantity: 1, name: "", email: "", company: "", notes: "" });
+                    setQuoteSubmitted(false);
+                    setAiMessages([{ role: "system", text: "I'm the Display Logic AI advisor. Tell me about your application — environment, power constraints, compliance requirements, or any technical challenge. I'll recommend a display configuration and guide you through the build." }]);
+                  }}
+                    style={{ background: "transparent", border: `1px solid ${COLORS.border}`, color: COLORS.textMid, padding: "12px 28px", borderRadius: 6, cursor: "pointer", fontFamily: "'Courier New', monospace", fontSize: 12 }}>BUILD ANOTHER</button>
+                  <a href="tel:6314061922" style={{ textDecoration: "none" }}>
+                    <button style={{ background: COLORS.card, border: `1px solid ${COLORS.borderBright}`, color: COLORS.text, padding: "12px 28px", borderRadius: 6, cursor: "pointer", fontFamily: "'Courier New', monospace", fontSize: 12 }}>CALL KEITH DIRECTLY</button>
+                  </a>
+                </div>
+              </div>
+            )}
+
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
