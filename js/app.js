@@ -362,7 +362,6 @@ function calcQuoteTotals() {
 
 function addLineItem(product = null) {
   const container = document.getElementById('quoteLineItems');
-  const itemId    = uid();
 
   // Build visible product options respecting display logic
   const visibleProds = state.products.filter(p => {
@@ -386,14 +385,13 @@ function addLineItem(product = null) {
 
   const div = document.createElement('div');
   div.className = 'line-item';
-  div.dataset.itemId = itemId;
   div.innerHTML = `
     <select class="form-input li-product">${productOpts}</select>
     <input type="number" class="form-input li-qty"   value="${initQty}"   min="1"  step="1"    placeholder="1" />
     <input type="number" class="form-input li-price" value="${initPrice}" min="0"  step="0.01" placeholder="0.00" />
     <input type="number" class="form-input li-disc"  value="0"            min="0"  max="100"   step="0.1" placeholder="0" />
     <span class="line-total">${fmt(initQty * initPrice)}</span>
-    <button type="button" class="remove-line" data-item="${itemId}" title="Remove">×</button>
+    <button type="button" class="remove-line" title="Remove">×</button>
   `;
   container.appendChild(div);
 
@@ -777,8 +775,7 @@ document.getElementById('addLineItem').addEventListener('click', () => addLineIt
 document.getElementById('quoteLineItems').addEventListener('click', e => {
   const rmBtn = e.target.closest('.remove-line');
   if (rmBtn) {
-    const itemId = rmBtn.dataset.item;
-    const row = document.querySelector(`.line-item[data-item-id="${itemId}"]`);
+    const row = rmBtn.closest('.line-item');
     if (row) row.remove();
     calcQuoteTotals();
   }
